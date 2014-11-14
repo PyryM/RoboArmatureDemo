@@ -1,0 +1,8 @@
+*.stl
+*.pyc
+*.png
+*.jpg
+*.dae
+bower_components/
+*.DS_Store
+web/fonts/

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+
+<script src="http://cdn.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+<script src="lib/jquery.min.js"></script>
+<script src="lib/roslib.js"></script>
+
+<script>
+  /**
+   * Setup all visualization elements when the page is loaded.
+   */
+  $(function() {
+    init();
+  });
+
+  var urdfModel = null;
+
+  function init() {
+    // Connect to ROS.
+    $.get("urdf/WAM_URDF.urdf", function(data){
+      urdfModel = new ROSLIB.UrdfModel({
+        string : data
+      });
+
+      console.log(urdfModel);
+    });
+  };
+</script>
+</head>
+
+<body>
+  <h1>Simple URDF Parsing Example</h1>
+</body>
+</html>

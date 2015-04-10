@@ -128,24 +128,24 @@ function init() {
 
 	//initOrbitCamera(camera);
 
-	// $.get("atlas.json", function(data) {
-	// 	console.log("Got data... trying to build armature...");
-	// 	var jdata = JSON.parse(data);
-	// 	thearmature = new Armature(scene, jdata, "utorso");
-	// 	thearmature.root.rotation.x = -Math.PI / 2.0;
-	// 	thearmature.root.position.y = 0.8;
+	$.get("atlas.json", function(data) {
+		console.log("Got data... trying to build armature...");
+		var jdata = JSON.parse(data);
+		thearmature = new Armature(scene, jdata, "utorso");
+		thearmature.root.rotation.x = -Math.PI / 2.0;
+		thearmature.root.position.y = 0.8;
 
-	// 	lefthand = new THREE.Object3D();
-	// 	lefthand.position.set(0,0.1,0);
-	// 	righthand = new THREE.Object3D();
-	// 	righthand.position.set(0,-0.1,0);
-	// 	thearmature.links.r_hand.knode.add(righthand);
-	// 	thearmature.links.l_hand.knode.add(lefthand);
-	// });
+		lefthand = new THREE.Object3D();
+		lefthand.position.set(0,0.1,0);
+		righthand = new THREE.Object3D();
+		righthand.position.set(0,-0.1,0);
+		thearmature.links.r_hand.knode.add(righthand);
+		thearmature.links.l_hand.knode.add(lefthand);
+	});
 
 	animate();
 
-	//init_ws();
+	init_ws();
 
 }
 

@@ -1,21 +1,11 @@
-function Armature(parentobj, srcdata, rootname, modellib, refid) {
-	if(typeof(srcdata) === "string") {
-		console.log("Armature src was string, parsing as json");
-		this.srcdata = JSON.parse(srcdata);
-	} else if(typeof(srcdata) === "object") {
-		this.srcdata = srcdata;
-	} else {
-		console.log("Unknown src data: " + srcdata);
-	}
+function Armature(parentobj, srcdata, rootname) {
+	this.srcdata = srcdata;
 	this.joints = {};
 	this.links = {};
 	this.root = new THREE.Object3D();
 	parentobj.add(this.root);
-	this.rotationOrder = 'ZYX';
-	//this.modelLib = modellib;
 	this.buildFrom(rootname);
 	this.warnings = {};
-	this.ref = refid;
 }
 
 function hackSetRotation(joint, rot) {
@@ -57,7 +47,6 @@ Armature.prototype.buildFrom = function(nodename) {
 	var tempdata = {};
 	var l = this.srcdata.links;
 	console.log(this.srcdata);
-	console.log(l);
 
 	for(var linkname in l) {
 		console.log(linkname);
@@ -85,36 +74,26 @@ Armature.prototype.buildFrom = function(nodename) {
 };
 
 Armature.prototype.buildLink = function(parent, linkdata) {
-	var bknode = new THREE.Object3D();
 	var knode = new THREE.Object3D();
-	parent.knode.add(bknode);
-	bknode.add(knode);
+	parent.knode.add(knode);
 	var vnode = new THREE.Object3D();
 	knode.add(vnode);
 
-	var axis = [1,0,0];
-	var krot = [0,0,0];
-	if(linkdata.kdata) {
-		axis = linkdata.kdata.axis;
-		var kp = linkdata.kdata.vpos;
-		bknode.position.set(kp[0], kp[1], kp[2]);
-		var kr = linkdata.kdata.vrot;
-		bknode.rotation.set(kr[0], kr[1], kr[2], this.rotationOrder);
-		//bknode.rotation.set(Math.PI / 2.0, 0, 0);
-	}
+	var axis = linkdata.kdata.axis;
+	var kp = linkdata.kdata.vpos;
+	knode.position.set(kp[0], kp[1], kp[2]);
 
 	var p = linkdata.vdata.vpos;
 	var r = linkdata.vdata.vrot;
 	var s = linkdata.vdata.vscale;
-	vnode.position.set(p[0], p[1], p[2]);
-	vnode.rotation.set(r[0], r[1], r[2], this.rotationOrder);
-	console.log(r);
-	//vnode.scale.set(s[0], s[1], s[2]);
-	this.loadModel("meshes/" + linkdata.vdata.meshname, vnode, linkdata.vdata.color);
+	//vnode.position.set(p[0], p[1], p[2]);
+	//vnode.rotation.set(r[0], r[1], r[2]);
+	vnode.scale.set(s[0], s[1], s[2]);
+	load_stl("meshes/" + linkdata.vdata.meshname, vnode);
 
 	var vaxis = new THREE.Vector3(axis[0], axis[1], axis[2]);
 	vaxis.normalize();
-	return {knode: knode, vnode: vnode, axis: axis, krot: krot, rmat: new THREE.Matrix4(), vaxis: vaxis};
+	return {knode: knode, vnode: vnode, axis: axis, rmat: new THREE.Matrix4(), vaxis: vaxis};
 };
 
 Armature.prototype.recursiveBuild = function(parent, node) {
@@ -131,28 +110,13 @@ Armature.prototype.recursiveBuild = function(parent, node) {
 	}
 };
 
-Armature.prototype.loadModel = function(filename, dest, color) {
-	if(this.modelLib) {
-		this.modelLib.getModel(filename, dest, this);
-	} else {
-		console.log("No modellib; directly loading!");
-		load_stl(filename, dest, color);
-	}
-};
-
-function load_stl( filename, dest, color ) {
+function load_stl( filename, dest ) {
 	var loader = new THREE.STLLoader();
 	var tempdest = dest;
-	var tcolor = 0xff5533;
-	if(color) {
-		tcolor = new THREE.Color(color[0], color[1], color[2]);
-	}
 	loader.addEventListener( 'load', function ( event ) {
+
 		var geometry = event.content;
-		//console.log(geometry);
-		//geometry.mergeVertices();
-		//geometry.computeVertexNormals();
-		var material = new THREE.MeshPhongMaterial( { shading: THREE.SmoothShading, ambient: 0xff5533, color: tcolor, specular: 0x111111, shininess: 200 } );
+		var material = new THREE.MeshPhongMaterial( { ambient: 0xff5533, color: 0xff5533, specular: 0x111111, shininess: 200 } );
 		var mesh = new THREE.Mesh( geometry, material );
 
 		dest.add( mesh );

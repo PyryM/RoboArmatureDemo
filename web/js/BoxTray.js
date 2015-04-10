@@ -44,10 +44,19 @@ BoxTray.prototype.onModelLoaded = function() {
 BoxTray.prototype.loadModels = function() {
 	this.loader = new THREE.OBJLoader();
 
+	var cubeGeo = new THREE.BoxGeometry( 0.1, 0.1, 0.1, 10, 10 );
+    var cubeMaterial = new THREE.MeshPhongMaterial( { //ambient: 0xff5533, 
+    												  //color: 0xff5533, 
+    												  specular: 0x111111, 
+    												  shininess: 200 } );
+    cubeMaterial.color.setRGB(Math.random(), Math.random(), Math.random());
+
 	for(var i = 0; i < this.models.length; ++i) {
 		var cm = this.models[i];
 		loadOBJ(this.loader, cm.url, cm.texurl, cm, this);
 	}
+
+    this.models.push({"geo": cubeGeo, "mat": cubeMaterial, "bounds": [0.1,0.1,0.1], "offset": [0,0,0]});
 };
 
 BoxTray.prototype.update = function(dt) {

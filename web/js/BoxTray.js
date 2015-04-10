@@ -1,4 +1,24 @@
-function BoxTray(scene, nboxes) {
+function loadOBJ(loader, url, texurl, target, callback) {
+	var cb = callback;
+	var tex = THREE.ImageUtils.loadTexture(texurl);
+	loader.load(url, function(loadedObject) {
+		console.log("foo");
+		console.log(loadedObject.children[0]);
+		console.log("baz");
+		var mat = new THREE.MeshPhongMaterial({
+			specular: 0x111111, 
+        	shininess: 200,
+        	color: 0xffffff,
+        	map: tex
+		});
+		console.log("bar");
+		target.geo = loadedObject.children[0].geometry;
+		target.mat = mat;
+		cb.onModelLoaded();
+	});
+}
+
+function BoxTray(scene, nboxes, models) {
 	this.scene = scene;
 	this.nboxes = nboxes;
 	this.hands = [];
@@ -7,8 +27,28 @@ function BoxTray(scene, nboxes) {
 	this.bsize = 0.10;
 	this.voffset = -0.5;
 
+	this.models = models;
+	this.unloaded = this.models.length;
+	this.loadModels();
 	this.initCannon();
 }
+
+BoxTray.prototype.onModelLoaded = function() {
+	this.unloaded -= 1;
+	console.log("Loaded a model; " + this.unloaded + " left.");
+	if(this.unloaded <= 0){
+		this.createBoxes(this.nboxes);
+	}
+};
+
+BoxTray.prototype.loadModels = function() {
+	this.loader = new THREE.OBJLoader();
+
+	for(var i = 0; i < this.models.length; ++i) {
+		var cm = this.models[i];
+		loadOBJ(this.loader, cm.url, cm.texurl, cm, this);
+	}
+};
 
 BoxTray.prototype.update = function(dt) {
     this.world.step(dt || (1.0 / 60.0));
@@ -18,35 +58,54 @@ BoxTray.prototype.update = function(dt) {
     }
 };
 
+BoxTray.prototype.getRandomModel = function() {
+	var items = this.models;
+	var item = items[Math.floor(Math.random()*items.length)];
+	return item;
+};
+
 BoxTray.prototype.createBoxes = function(N) {
     // Create boxes
     var mass = 5, radius = 1.3;
     var boxBody;
-    var bs = this.bsize;
-    var cubeGeo = new THREE.BoxGeometry( bs, bs, bs, 10, 10 );
+    var cubeMaterial = new THREE.MeshPhongMaterial( { //ambient: 0xff5533, 
+    												  //color: 0xff5533, 
+    												  specular: 0x111111, 
+    												  shininess: 200 } );
+    cubeMaterial.color.setRGB(Math.random(), Math.random(), Math.random());
+
     //var cubeMaterial = new THREE.MeshPhongMaterial( { color: 0x888888 } );
     var boxMesh;
-
-    var hs = this.bsize / 2.0;
-    this.boxShape = new CANNON.Box(new CANNON.Vec3(hs, hs, hs));
+    var gnode;
 
     for(var i = 0; i < N; ++i){
+    	var cb = this.getRandomModel();
+    	var bgeo = cb.geo;
+    	var bmat = cb.mat;
+    	var coff = cb.offset;
+    	console.log(bgeo);
+    	console.log(bmat);
+    	var bs = cb.bounds;
+    	var cubeGeo = new THREE.BoxGeometry( bs[0], bs[1], bs[2], 10, 10 );
+    	var boxShape = new CANNON.Box(new CANNON.Vec3(bs[0]/2, bs[1]/2, bs[2]/2));
+
         boxBody = new CANNON.Body({ mass: mass });
-        boxBody.addShape(this.boxShape);
+        boxBody.addShape(boxShape);
         boxBody.position.set(0, (i+1)*this.bsize*1.1 + this.voffset, -0.6);
         this.world.add(boxBody);
         //console.log(this);
         this.bodies.push(boxBody);
-        var cubeMaterial = new THREE.MeshPhongMaterial( { //ambient: 0xff5533, 
-        												  //color: 0xff5533, 
-        												  specular: 0x111111, 
-        												  shininess: 200 } );
-        cubeMaterial.color.setRGB(Math.random(), Math.random(), Math.random());
 
 	    boxMesh = new THREE.Mesh(cubeGeo, cubeMaterial);
+	    meshMesh = new THREE.Mesh(bgeo, bmat);
+	    meshMesh.position.set(coff[0], coff[1], coff[2]);
 	    //boxMesh.castShadow = true;
-	    this.meshes.push(boxMesh);
-	    this.scene.add(boxMesh);
+	    gnode = new THREE.Object3D();
+	    //gnode.add(boxMesh);
+	    gnode.add(meshMesh);
+
+	    this.meshes.push(gnode);
+	    this.scene.add(gnode);
     }
 };
 
@@ -177,5 +236,4 @@ BoxTray.prototype.initCannon = function () {
     this.scene.add(planeMesh);
 
     this.createHands();
-    this.createBoxes(this.nboxes);
 }

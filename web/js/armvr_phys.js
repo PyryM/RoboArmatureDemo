@@ -105,7 +105,12 @@ function init() {
 	scene.position.x = -0.1;
 	scene.rotation.y = -Math.PI / 2.0;
 
-	boxtray = new BoxTray(basescene, 5);
+	var models = [
+		{"bounds": [0.1,0.1,0.2], "offset": [0,0,-0.1], "url": "obj/fuze_bottle_lo.obj", "texurl": "obj/fuze_bottle_0.jpg"},
+		{"bounds": [0.1,0.2,0.3], "offset": [0,0,-0.15], "url": "obj/pops_cereal_lo.obj", "texurl": "obj/pops_cereal_0.jpg"},
+	];
+
+	boxtray = new BoxTray(basescene, 10, models);
 
 	// add some lights so we can see stuff
 	scene.add( new THREE.AmbientLight( 0x050505 ) );
@@ -174,7 +179,6 @@ function animate() {
 
 	// //composer.render();
 	// renderer.render(scene, camera);
-	controls.update();
 	// console.log("In animate:");
 	// console.log(fakeobject.quat);
 	// console.log(fakeobject.pos);
@@ -183,6 +187,7 @@ function animate() {
 	//camera.quaternion.set(0.5, 0.5, 0.5 , 0.5);
 	//camera.quaternion.copy(camtarget.quaternion);
 	mainLoop();
+	controls.update();
 	effect.render( basescene, camera );
 
 	stats.update();
@@ -217,7 +222,7 @@ function init_ws() {
 		}
 	};
 
-	window.setInterval(ping_data, 100);
+	window.setInterval(ping_data, 30);
 }
 
 function ping_data() {
